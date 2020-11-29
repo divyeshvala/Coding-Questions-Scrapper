@@ -16,6 +16,18 @@ options.headless = True
 options.add_argument("--log-level=3")
 driver = webdriver.Chrome(executable_path=CHROMEDRIVER_PATH, options=options)
 
+# Download your firebase admin sdk private key json file. And specify
+# it's path in place of './xyz.json'
+# If you don't know how to download it, follow these steps
+# Firebase -> Settings -> Service Accounts -> Firebase Admin SDK -> [New Service Account] -> Python -> Generate new Private key
+cred = credentials.Certificate(
+    './xyz.json')
+
+# Insert your firbase databaseURL in place of 'https://xyz.firebaseio.com/'
+app = firebase_admin.initialize_app(
+    cred, {'databaseURL': 'https://xyz.firebaseio.com/'})
+root = db.reference('coding_questions')
+
 
 def main():
     # Leetcode API URL to get json of problems on algorithms categories
@@ -77,6 +89,16 @@ def main():
 
                 print(frontend_question_id+", "+question__title+", " +
                       difficulty_level+", "+total_accepted_solutions+", "+tags)
+
+                # Upload data to the firebase.
+                root.push({
+                    "title": question__title,
+                    "topics": topics,
+                    "total_accepted_solutions": total_accepted_solutions,
+                    "difficulty_level": difficulty_level,
+                    "descriptionHTML": problem_html,
+                    "questionID": frontend_question_id
+                })
 
             except Exception as e:
                 print(f" Failed Writing!!  {e} ")
